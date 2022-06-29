@@ -12,6 +12,8 @@ import {
   TouchableWithoutFeedback,
   Dimensions,
 } from "react-native";
+import { useDispatch } from "react-redux";
+import { authSignInUser } from "../../redux/auth/authOperations";
 
 const initialState = {
   email: "",
@@ -21,6 +23,8 @@ const initialState = {
 export default function LoginScreen({ navigation }) {
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
+  const dispatch = useDispatch();
+
   const [dimensions, setDimensions] = useState(
     Dimensions.get("window").width - 20 * 2
   );
@@ -30,16 +34,21 @@ export default function LoginScreen({ navigation }) {
       const width = Dimensions.get("window").width - 20 * 2;
       setDimensions(width);
     };
-    Dimensions.addListener("change", onChange);
+    Dimensions.addEventListener("change", onChange);
     return () => {
-      Dimensions.removeListener("change", onChange);
+      Dimensions.removeEventListener("change", onChange);
     };
   }, []);
 
   const keyboardHide = () => {
     setIsShowKeyboard(false);
     Keyboard.dismiss();
-    console.log(state);
+  };
+
+  const handleSubmit = () => {
+    setIsShowKeyboard(false);
+    Keyboard.dismiss();
+    dispatch(authSignInUser(state));
     setState(initialState);
   };
 
@@ -47,37 +56,50 @@ export default function LoginScreen({ navigation }) {
     <TouchableWithoutFeedback onPress={keyboardHide}>
       <View style={styles.container}>
         <ImageBackground
-          source={require("../../assets/images/kenny-eliason-OjxsirfohHU-unsplash.jpg")}
+          source={require("../../assets/images/Photo.jpg")}
           style={styles.image}
         >
           <KeyboardAvoidingView
           // behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <View
-              style={{
-                ...styles.form,
-                marginBottom: isShowKeyboard ? 20 : 100,
-                width: dimensions,
-              }}
+              style={[
+                styles.form,
+                // { marginBottom: isShowKeyboard ? 20 : 100 }
+              ]}
             >
               <View style={styles.header}>
-                <Text style={styles.headerTitle}>Hello again</Text>
-                <Text style={styles.headerTitle}>Welcome back</Text>
+                <Text style={styles.headerTitle}>LOGIN</Text>
               </View>
-              <View>
-                <Text style={styles.inputTitle}>EMAIL ADDRES</Text>
+              {/* <View style={[styles.inputContainer, { width: dimensions }]}>
                 <TextInput
                   style={styles.input}
+                  textAlign={"center"}
+                  placeholder="Enter your name"
+                  value={state.name}
+                  // onFocus={() => setIsShowKeyboard(true)}
+                  onChangeText={(name) => setState({ ...state, name })}
+                />
+              </View> */}
+              <View style={[styles.inputContainer, { width: dimensions }]}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter your email"
                   textAlign={"center"}
                   value={state.email}
                   onFocus={() => setIsShowKeyboard(true)}
                   onChangeText={(email) => setState({ ...state, email })}
                 />
               </View>
-              <View style={{ marginTop: 20 }}>
-                <Text style={styles.inputTitle}>PASSWORD</Text>
+              <View
+                style={[
+                  styles.inputContainer,
+                  { width: dimensions, marginTop: 16 },
+                ]}
+              >
                 <TextInput
                   style={styles.input}
+                  placeholder="Enter your password"
                   textAlign={"center"}
                   secureTextEntry={true}
                   value={state.password}
@@ -88,20 +110,23 @@ export default function LoginScreen({ navigation }) {
               <TouchableOpacity
                 activeOpacity={0.8}
                 style={styles.button}
-                onPress={keyboardHide}
+                onPress={handleSubmit}
               >
                 <Text style={styles.btnTitle}>SIGN IN</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("Register")}
-                style={{ marginTop: 20 }}
-              >
-                <Text style={styles.navTitle}>go to register</Text>
-              </TouchableOpacity>
-              {/* <Button
-                onPress={() => navigation.navigate("Register")}
-                title="go to register"
-              /> */}
+              <Text style={styles.navTitle}>
+                Haven`t got an account?{" "}
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("Register")}
+                  style={{ marginBottom: 45 }}
+                >
+                  <Text style={{ color: "#ff8c00" }}>Go to Registration</Text>
+                </TouchableOpacity>
+              </Text>
+
+              <View style={styles.footer}>
+                <View style={styles.footerIndicator}></View>
+              </View>
             </View>
           </KeyboardAvoidingView>
         </ImageBackground>
@@ -115,67 +140,104 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
   header: {
     alignItems: "center",
-    marginBottom: 50,
+    marginBottom: 33,
+    marginTop: 92,
   },
   headerTitle: {
     fontSize: 30,
-    color: "#00ffff",
+    lineHeight: 35,
+    color: "#212121",
     fontFamily: "Roboto",
+    fontWeight: 500,
+    letterSpacing: 0.01,
   },
   inputTitle: {
     color: "#00ffff",
-    fontSize: 14,
+    fontSize: 30,
+
     marginBottom: 10,
     fontFamily: "Roboto",
     // textAlign: "center",
   },
   form: {
-    marginHorizontal: 40,
+    flex: 1,
+    height: 549,
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    alignItems: "center",
+    // marginBottom: isShowKeyboard ? 20 : 100,
   },
+
   image: {
     flex: 1,
     justifyContent: "flex-end",
     resizeMode: "cover",
     alignItems: "center",
   },
-  input: {
+  inputContainer: {
+    width: 343,
+    backgroundColor: "#F6F6F6",
     borderWidth: 1,
-    borderColor: "#00ffff",
-    color: "#00ffff",
-    height: 40,
-    borderRadius: 10,
+    borderColor: "#E8E8E8",
+    borderRadius: 8,
+    height: 50,
+    padding: 16,
+  },
+  input: {
+    fontSize: 16,
+    color: "#212121",
+    placeholderTextColor: "#BDBDBD",
   },
   button: {
+    width: 343,
     borderWidth: 1,
-    height: 40,
-    borderRadius: 10,
-    marginTop: 40,
+    // height: 40,
+    backgroundColor: "#FF6C00",
+    borderRadius: 100,
+    paddingVertical: 16,
+    marginTop: 43,
+    marginBottom: 16,
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 20,
     ...Platform.select({
       ios: {
-        backgroundColor: "transparent",
+        backgroundColor: "#FF6C00",
         borderColor: "#00ffff",
       },
       android: {
-        backgroundColor: "#00ffff",
+        backgroundColor: "#FF6C00",
         borderColor: "transparent",
       },
     }),
   },
   btnTitle: {
-    color: "#f0f8ff",
-    fontSize: 18,
+    color: "#fff",
+    fontSize: 16,
+    lineHeight: 19,
     fontWeight: "bold",
     fontFamily: "Roboto",
   },
   navTitle: {
-    color: "#006400",
-    fontSize: 20,
+    color: "#1B4371",
+    fontSize: 16,
+    lineHeight: 19,
+  },
+  footer: {
+    height: 34,
+    paddingHorizontal: 120,
+    paddingTop: 21,
+    paddingBottom: 8,
+  },
+  footerIndicator: {
+    width: 134,
+    height: 5,
+    backgroundColor: "#212121",
+    borderRadius: 100,
   },
 });
